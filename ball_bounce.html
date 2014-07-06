@@ -1,0 +1,105 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+    </style>
+</head>
+<body>
+<script charset="utf-8" src="js/three.min.js"></script>
+
+<script>
+  var WIDTH = window.innerWidth;
+  var HEIGHT = window.innerHeight;
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 10000);
+
+  var renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // add group & light to the scene
+  var group = new THREE.Object3D();
+  group.position.y = 50;
+  scene.add(group);
+  var light = new THREE.DirectionalLight(0xffffff);
+  light.position.set(0, 0.2, 0.5).normalize();
+  scene.add(light);
+  camera.position.z = 500;
+
+  //sphere
+  var phongMaterial = new THREE.MeshPhongMaterial({
+    color: '#ff69b4',
+    ambient: '#ff69b4', // should generally match color
+    specular: 0x050505,
+    shininess: 150
+  });
+  var basicMaterial = new THREE.MeshBasicMaterial({color: '#ff69b4'});
+  var sphereGeometry = new THREE.SphereGeometry(50,100,100);
+  var sphere = new THREE.Mesh(sphereGeometry, phongMaterial);
+  sphere.scale = 100;//camera.position.x = 10;
+  scene.add(sphere);
+
+  // custom shape
+  var circleRadius = 40;
+  var arcShape = new THREE.Shape();
+  arcShape.moveTo(-circleRadius, 0);
+  arcShape.absarc(0, 0, circleRadius, 0, Math.PI);
+  arcShape.quadraticCurveTo(circleRadius, -circleRadius, 0, -circleRadius);
+  var mesh = new THREE.Mesh(
+    new THREE.ShapeGeometry(arcShape),
+    new THREE.MeshLambertMaterial({color: '#ffa500'})
+  );
+  mesh.position.set(100, 50, 0);
+  group.add(mesh);
+
+  // floor
+  var block = new THREE.Shape();
+  block.moveTo( 80, 0 );
+  block.absarc( 0, 0, 80, 0, Math.PI*2, false );
+  block.lineTo(0, 0);
+  block_mesh = new THREE.Mesh(
+    block.extrude({
+      amount: 50, bevelEnabled: false,
+      curveSegments: 20, steps: 2
+    }),
+    new THREE.MeshLambertMaterial({color: 'black'})
+  );
+  block_mesh.position.set(0, -180, 0);
+  block_mesh.rotation.set(-0.38*Math.PI, 0, 0);
+  group.add(block_mesh);
+
+  var animateSphere = (function(sphere) {
+    var isDown = true;
+    return function() {
+      if (isDown) {
+        sphere.position.y -= 0.5;
+      } else {
+        sphere.position.y += 0.5;
+      }
+
+      if (sphere.position.y === 20) {
+        isDown = true;
+      } else if (sphere.position.y < -50) {
+        isDown = false;
+      }
+    }
+  })(sphere);
+
+  var render = function() {
+    requestAnimationFrame(render);
+    animateSphere();
+    renderer.render(scene, camera);
+  };
+
+  render();
+</script>
+</body>
+</html>
